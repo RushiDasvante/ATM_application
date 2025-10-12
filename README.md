@@ -41,12 +41,19 @@ Transaction → Records every deposit, withdrawal, and transfer operation.
 
 🔗 Sample Endpoints
 Action	Method	URL	Params
+
 Login	GET	/atm/login?userId=U001&pin=1234	userId, pin
+
 Check Balance	GET	/atm/balance/ACC001	accountNumber
+
 Deposit	POST	/atm/deposit?accountNumber=ACC001&amount=2000	accountNumber, amount
+
 Withdraw	POST	/atm/withdraw?accountNumber=ACC001&amount=1000	accountNumber, amount
+
 Transfer	POST	/atm/transfer?from=ACC001&to=ACC002&amount=500	from, to, amount
+
 Transaction History	GET	/atm/transactions/ACC001	accountNumber
+
 🧠 How It Works
 
 The user logs in using userId and PIN.
@@ -57,23 +64,6 @@ All actions are stored persistently in the MySQL database.
 
 Users can fetch transaction history at any time using their account number.
 
-🧾 Example Transaction Response
-[
-  {
-    "id": 1,
-    "type": "DEPOSIT",
-    "amount": 2000.0,
-    "note": "Deposit money",
-    "timestamp": "2025-10-12T10:30:00"
-  },
-  {
-    "id": 2,
-    "type": "WITHDRAW",
-    "amount": 500.0,
-    "note": "Cash withdrawal",
-    "timestamp": "2025-10-12T11:00:00"
-  }
-]
 
 🚀 Future Enhancements
 
