@@ -14,6 +14,16 @@ public class ATMController {
     public ATMController(ATMService atmService) {
         this.atmService = atmService;
     }
+    
+    @PostMapping("/register")
+    public User register(
+            @RequestParam String userId,
+            @RequestParam String name,
+            @RequestParam String pin
+    ) {
+        return atmService.registerUser(userId, name, pin);
+    }
+
 
     @GetMapping("/login")
     public User login(@RequestParam String userId, @RequestParam String pin) {

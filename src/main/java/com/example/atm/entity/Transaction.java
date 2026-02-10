@@ -17,7 +17,7 @@ public class Transaction {
     private LocalDateTime timestamp;
 
     @ManyToOne
-    @JoinColumn(name = "account_number", nullable = false)
+    @JoinColumn(name = "account_number")
     @JsonIgnoreProperties({"transactions", "user"}) // prevent infinite recursion
     private Account account;
 

@@ -20,7 +20,32 @@ public class ATMService {
         this.accountRepo = accountRepo;
         this.txRepo = txRepo;
     }
+    
+    @Transactional
+    public User registerUser(String userId, String name, String pin) {
 
+        // Check if user already exists
+        if (userRepo.existsById(userId)) {
+            throw new RuntimeException("User already exists with ID: " + userId);
+        }
+
+        // Create User
+        User user = new User(userId, name, pin);
+
+        // Auto-generate account number
+        String accountNumber = "ACC" + System.currentTimeMillis();
+
+        // Initial balance = 0
+        Account account = new Account(accountNumber, 0.0, user);
+
+        // Link both
+        user.setAccount(account);
+
+        // Save user (account saved via cascade)
+        return userRepo.save(user);
+    }
+
+   
     // Login user
     public User login(String userId, String pin) {
         return userRepo.findById(userId)
