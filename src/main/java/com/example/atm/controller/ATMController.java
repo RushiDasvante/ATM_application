@@ -14,7 +14,8 @@ public class ATMController {
     public ATMController(ATMService atmService) {
         this.atmService = atmService;
     }
-    
+
+    // Register user
     @PostMapping("/register")
     public User register(
             @RequestParam String userId,
@@ -24,34 +25,61 @@ public class ATMController {
         return atmService.registerUser(userId, name, pin);
     }
 
-
+    // Login
     @GetMapping("/login")
-    public User login(@RequestParam String userId, @RequestParam String pin) {
+    public User login(
+            @RequestParam String userId,
+            @RequestParam String pin
+    ) {
         return atmService.login(userId, pin);
     }
 
-    @GetMapping("/balance/{accountNumber}")
-    public double balance(@PathVariable String accountNumber) {
-        return atmService.checkBalance(accountNumber);
+    // Check Balance (PIN mandatory)
+    @GetMapping("/balance")
+    public double balance(
+            @RequestParam String accountNumber,
+            @RequestParam String pin
+    ) {
+        return atmService.checkBalance(accountNumber, pin);
     }
 
+    // Deposit Money (PIN mandatory)
     @PostMapping("/deposit")
-    public String deposit(@RequestParam String accountNumber, @RequestParam double amount) {
-        return atmService.deposit(accountNumber, amount);
+    public String deposit(
+            @RequestParam String accountNumber,
+            @RequestParam String pin,
+            @RequestParam double amount
+    ) {
+        return atmService.deposit(accountNumber, pin, amount);
     }
 
+    // Withdraw Money (PIN mandatory)
     @PostMapping("/withdraw")
-    public String withdraw(@RequestParam String accountNumber, @RequestParam double amount) {
-        return atmService.withdraw(accountNumber, amount);
+    public String withdraw(
+            @RequestParam String accountNumber,
+            @RequestParam String pin,
+            @RequestParam double amount
+    ) {
+        return atmService.withdraw(accountNumber, pin, amount);
     }
 
+    // Transfer Money (PIN mandatory)
     @PostMapping("/transfer")
-    public String transfer(@RequestParam String from, @RequestParam String to, @RequestParam double amount) {
-        return atmService.transfer(from, to, amount);
+    public String transfer(
+            @RequestParam String fromAccount,
+            @RequestParam String pin,
+            @RequestParam String toAccount,
+            @RequestParam double amount
+    ) {
+        return atmService.transfer(fromAccount, pin, toAccount, amount);
     }
 
-    @GetMapping("/transactions/{accountNumber}")
-    public List<Transaction> transactions(@PathVariable String accountNumber) {
-        return atmService.getHistory(accountNumber.trim());
+    // Transaction History (PIN mandatory)
+    @GetMapping("/transactions")
+    public List<Transaction> transactions(
+            @RequestParam String accountNumber,
+            @RequestParam String pin
+    ) {
+        return atmService.getHistory(accountNumber, pin);
     }
 }

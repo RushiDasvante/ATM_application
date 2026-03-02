@@ -20,83 +20,84 @@ public class ATMService {
         this.accountRepo = accountRepo;
         this.txRepo = txRepo;
     }
-    
+
+    // Register User
     @Transactional
     public User registerUser(String userId, String name, String pin) {
 
-        // Check if user already exists
         if (userRepo.existsById(userId)) {
             throw new RuntimeException("User already exists with ID: " + userId);
         }
 
-        // Create User
         User user = new User(userId, name, pin);
 
-        // Auto-generate account number
         String accountNumber = "ACC" + System.currentTimeMillis();
 
-        // Initial balance = 0
         Account account = new Account(accountNumber, 0.0, user);
 
-        // Link both
         user.setAccount(account);
 
-        // Save user (account saved via cascade)
         return userRepo.save(user);
     }
 
-   
     // Login user
     public User login(String userId, String pin) {
         return userRepo.findById(userId)
                 .filter(u -> u.getPin().equals(pin))
-                .orElse(null);
+                .orElseThrow(() -> new RuntimeException("Invalid User ID or PIN"));
     }
 
-    // Check account balance
-    public double checkBalance(String accountNumber) {
+    // Common PIN validation for all operations
+    private Account validatePin(String accountNumber, String pin) {
         Account acc = accountRepo.findById(accountNumber.trim())
                 .orElseThrow(() -> new RuntimeException("Account not found: " + accountNumber));
+
+        User user = acc.getUser();
+
+        if (!user.getPin().equals(pin)) {
+            throw new RuntimeException("Invalid PIN");
+        }
+
+        return acc;
+    }
+
+    // Check account balance (PIN required)
+    public double checkBalance(String accountNumber, String pin) {
+        Account acc = validatePin(accountNumber, pin);
         return acc.getBalance();
     }
 
-    // Deposit money
+    // Deposit money (PIN required)
     @Transactional
-    public String deposit(String accountNumber, double amt) {
-        Account acc = accountRepo.findById(accountNumber.trim())
-                .orElseThrow(() -> new RuntimeException("Account not found: " + accountNumber));
+    public String deposit(String accountNumber, String pin, double amt) {
+        Account acc = validatePin(accountNumber, pin);
 
-        // Update account balance
         acc.setBalance(acc.getBalance() + amt);
         accountRepo.save(acc);
 
-        // Create transaction with all details
-        Transaction t = new Transaction("DEPOSIT", amt, "Deposit money", acc);
+        Transaction t = new Transaction();
+        t.setType("DEPOSIT");
+        t.setAmount(amt);
+        t.setAccount(acc);
+        t.setNote("Deposit money");
+        t.setTimestamp(LocalDateTime.now());
         txRepo.save(t);
-
-        // Add to account's transaction list
-        acc.getTransactions().add(t);
-        accountRepo.save(acc);
 
         return "Deposited " + amt + " successfully.";
     }
 
-
-
-
-    // Withdraw money
+    // Withdraw money (PIN required)
     @Transactional
-    public String withdraw(String accountNumber, double amt) {
-        Account acc = accountRepo.findById(accountNumber.trim())
-                .orElseThrow(() -> new RuntimeException("Account not found: " + accountNumber));
+    public String withdraw(String accountNumber, String pin, double amt) {
+        Account acc = validatePin(accountNumber, pin);
 
-        if (amt > acc.getBalance()) return "Insufficient balance.";
+        if (amt > acc.getBalance()) {
+            return "Insufficient balance.";
+        }
 
-        // Update balance
         acc.setBalance(acc.getBalance() - amt);
         accountRepo.save(acc);
 
-        // Log transaction
         Transaction t = new Transaction();
         t.setType("WITHDRAWAL");
         t.setAmount(amt);
@@ -108,24 +109,25 @@ public class ATMService {
         return "Withdrawn " + amt + " successfully.";
     }
 
-    // Transfer money
+    // Transfer money (PIN required)
     @Transactional
-    public String transfer(String fromAcc, String toAcc, double amt) {
-        Account sender = accountRepo.findById(fromAcc.trim())
-                .orElseThrow(() -> new RuntimeException("Sender account not found: " + fromAcc));
+    public String transfer(String fromAcc, String pin, String toAcc, double amt) {
+
+        Account sender = validatePin(fromAcc, pin);
+
         Account receiver = accountRepo.findById(toAcc.trim())
                 .orElseThrow(() -> new RuntimeException("Receiver account not found: " + toAcc));
 
-        if (amt > sender.getBalance()) return "Insufficient funds.";
+        if (amt > sender.getBalance()) {
+            return "Insufficient funds.";
+        }
 
-        // Update balances
         sender.setBalance(sender.getBalance() - amt);
         receiver.setBalance(receiver.getBalance() + amt);
 
         accountRepo.save(sender);
         accountRepo.save(receiver);
 
-        // Log transactions
         Transaction t1 = new Transaction();
         t1.setType("TRANSFER_SENT");
         t1.setAmount(amt);
@@ -145,8 +147,9 @@ public class ATMService {
         return "Transferred " + amt + " from " + fromAcc + " to " + toAcc + " successfully.";
     }
 
-    // Transaction history
-    public List<Transaction> getHistory(String accountNumber) {
+    // Transaction history (PIN required)
+    public List<Transaction> getHistory(String accountNumber, String pin) {
+        validatePin(accountNumber, pin);
         return txRepo.findByAccount_AccountNumberOrderByTimestampDesc(accountNumber.trim());
     }
 }
