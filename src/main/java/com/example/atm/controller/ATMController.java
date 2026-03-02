@@ -2,7 +2,9 @@ package com.example.atm.controller;
 
 import com.example.atm.entity.*;
 import com.example.atm.service.ATMService;
+import com.example.atm.dto.*;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
@@ -17,69 +19,69 @@ public class ATMController {
 
     // Register user
     @PostMapping("/register")
-    public User register(
-            @RequestParam String userId,
-            @RequestParam String name,
-            @RequestParam String pin
-    ) {
-        return atmService.registerUser(userId, name, pin);
+    public User register(@RequestBody RegisterRequest request) {
+        return atmService.registerUser(
+                request.getUserId(),
+                request.getName(),
+                request.getPin()
+        );
     }
 
     // Login
-    @GetMapping("/login")
-    public User login(
-            @RequestParam String userId,
-            @RequestParam String pin
-    ) {
-        return atmService.login(userId, pin);
+    @PostMapping("/login")
+    public User login(@RequestBody LoginRequest request) {
+        return atmService.login(
+                request.getUserId(),
+                request.getPin()
+        );
     }
 
-    // Check Balance (PIN mandatory)
-    @GetMapping("/balance")
-    public double balance(
-            @RequestParam String accountNumber,
-            @RequestParam String pin
-    ) {
-        return atmService.checkBalance(accountNumber, pin);
+    // Check Balance
+    @PostMapping("/balance")
+    public double balance(@RequestBody BalanceRequest request) {
+        return atmService.checkBalance(
+                request.getAccountNumber(),
+                request.getPin()
+        );
     }
 
-    // Deposit Money (PIN mandatory)
+    // Deposit
     @PostMapping("/deposit")
-    public String deposit(
-            @RequestParam String accountNumber,
-            @RequestParam String pin,
-            @RequestParam double amount
-    ) {
-        return atmService.deposit(accountNumber, pin, amount);
+    public String deposit(@RequestBody DepositRequest request) {
+        return atmService.deposit(
+                request.getAccountNumber(),
+                request.getPin(),
+                request.getAmount()
+        );
     }
 
-    // Withdraw Money (PIN mandatory)
+    // Withdraw
     @PostMapping("/withdraw")
-    public String withdraw(
-            @RequestParam String accountNumber,
-            @RequestParam String pin,
-            @RequestParam double amount
-    ) {
-        return atmService.withdraw(accountNumber, pin, amount);
+    public String withdraw(@RequestBody WithdrawRequest request) {
+        return atmService.withdraw(
+                request.getAccountNumber(),
+                request.getPin(),
+                request.getAmount()
+        );
     }
 
-    // Transfer Money (PIN mandatory)
+    // Transfer
     @PostMapping("/transfer")
-    public String transfer(
-            @RequestParam String fromAccount,
-            @RequestParam String pin,
-            @RequestParam String toAccount,
-            @RequestParam double amount
-    ) {
-        return atmService.transfer(fromAccount, pin, toAccount, amount);
+    public String transfer(@RequestBody TransferRequest request) {
+        return atmService.transfer(
+                request.getFromAccount(),
+                request.getPin(),
+                request.getToAccount(),
+                request.getAmount()
+        );
     }
 
-    // Transaction History (PIN mandatory)
-    @GetMapping("/transactions")
-    public List<Transaction> transactions(
-            @RequestParam String accountNumber,
-            @RequestParam String pin
-    ) {
-        return atmService.getHistory(accountNumber, pin);
+    // Transaction history
+    @PostMapping("/transactions")
+    public List<Transaction> transactions(@RequestBody BalanceRequest request) {
+        return atmService.getHistory(
+                request.getAccountNumber(),
+                request.getPin()
+        );
     }
 }

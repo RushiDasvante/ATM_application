@@ -71,7 +71,7 @@ public class ATMService {
     @Transactional
     public String deposit(String accountNumber, String pin, double amt) {
         Account acc = validatePin(accountNumber, pin);
-
+        if(amt<=0) {throw new RuntimeException("Negative Balance Exception(The Amount must be Greater Than Zero)");}
         acc.setBalance(acc.getBalance() + amt);
         accountRepo.save(acc);
 
@@ -90,6 +90,7 @@ public class ATMService {
     @Transactional
     public String withdraw(String accountNumber, String pin, double amt) {
         Account acc = validatePin(accountNumber, pin);
+        if(amt<=0) {throw new RuntimeException("Negative Balance Exception(The Amount must be Greater Than Zero)");}
 
         if (amt > acc.getBalance()) {
             return "Insufficient balance.";
@@ -114,14 +115,15 @@ public class ATMService {
     public String transfer(String fromAcc, String pin, String toAcc, double amt) {
 
         Account sender = validatePin(fromAcc, pin);
-
+        
         Account receiver = accountRepo.findById(toAcc.trim())
                 .orElseThrow(() -> new RuntimeException("Receiver account not found: " + toAcc));
+        if(amt<=0) {throw new RuntimeException("Negative Balance Exception(The Amount must be Greater Than Zero)");}
 
         if (amt > sender.getBalance()) {
             return "Insufficient funds.";
         }
-
+        if(fromAcc.equals(toAcc)) {throw new RuntimeException("Can not transfer money to the same account");}
         sender.setBalance(sender.getBalance() - amt);
         receiver.setBalance(receiver.getBalance() + amt);
 
