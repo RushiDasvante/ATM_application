@@ -14,7 +14,7 @@ public class User {
     @Column(nullable = false, length = 100)
     private String name;
 
-    @Column(nullable = false, length = 10)
+    @Column(nullable = false, length = 1000)
     private String pin;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

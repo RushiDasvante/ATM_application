@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-
+import org.springframework.security.crypto.password.PasswordEncoder;
 @Service
 public class ATMService {
 
@@ -15,10 +15,16 @@ public class ATMService {
     private final AccountRepository accountRepo;
     private final TransactionRepository txRepo;
 
-    public ATMService(UserRepository userRepo, AccountRepository accountRepo, TransactionRepository txRepo) {
+    private final PasswordEncoder passwordEncoder;
+
+    public ATMService(UserRepository userRepo,
+                      AccountRepository accountRepo,
+                      TransactionRepository txRepo,
+                      PasswordEncoder passwordEncoder) {
         this.userRepo = userRepo;
         this.accountRepo = accountRepo;
         this.txRepo = txRepo;
+        this.passwordEncoder = passwordEncoder;
     }
 
     // Register User
@@ -29,7 +35,8 @@ public class ATMService {
             throw new RuntimeException("User already exists with ID: " + userId);
         }
 
-        User user = new User(userId, name, pin);
+        String hashedPin = passwordEncoder.encode(pin);
+        User user = new User(userId, name, hashedPin);
 
         String accountNumber = "ACC" + System.currentTimeMillis();
 
@@ -43,7 +50,7 @@ public class ATMService {
     // Login user
     public User login(String userId, String pin) {
         return userRepo.findById(userId)
-                .filter(u -> u.getPin().equals(pin))
+        		.filter(u -> passwordEncoder.matches(pin, u.getPin()))
                 .orElseThrow(() -> new RuntimeException("Invalid User ID or PIN"));
     }
 
@@ -54,7 +61,7 @@ public class ATMService {
 
         User user = acc.getUser();
 
-        if (!user.getPin().equals(pin)) {
+        if (!passwordEncoder.matches(pin, user.getPin())) {
             throw new RuntimeException("Invalid PIN");
         }
 
