@@ -31,14 +31,11 @@ public class ATMController {
 
     // Login (Public) -> returns JWT token
     @PostMapping("/login")
-    public Map<String, String> login(@RequestBody LoginRequest request) {
-        String token = atmService.login(
+    public LoginResponse login(@RequestBody LoginRequest request) {
+        return atmService.login(
                 request.getUserId(),
                 request.getPin()
-                
         );
-
-        return Map.of("token", token);
     }
     
 
@@ -111,7 +108,7 @@ public class ATMController {
         if (req.getAmount() <= 0) {
             throw new RuntimeException("Invalid amount");
         }
-
+        
         return atmService.transfer(
                 userId,
                 req.getToAccount(),

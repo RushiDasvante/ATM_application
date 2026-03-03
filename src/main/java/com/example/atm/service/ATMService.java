@@ -1,5 +1,6 @@
 package com.example.atm.service;
 
+import com.example.atm.dto.LoginResponse;
 import com.example.atm.entity.*;
 import com.example.atm.repository.*;
 import com.example.atm.security.JwtUtil;
@@ -53,14 +54,23 @@ public class ATMService {
     }
 
     // Login
-    public String login(String userId, String pin) {
+    public LoginResponse login(String userId, String pin) {
 
         User user = userRepo.findById(userId)
                 .filter(u -> passwordEncoder.matches(pin, u.getPin()))
                 .orElseThrow(() -> new RuntimeException("Invalid User ID or PIN"));
-        
 
-        return jwtUtil.generateToken(user.getUserId());
+        String token = jwtUtil.generateToken(user.getUserId());
+
+        Account account = user.getAccount();
+
+        return new LoginResponse(
+                token,
+                user.getUserId(),
+                user.getName(),
+                account.getAccountNumber(),
+                account.getBalance()
+        );
     }
 
     private Account getUserAccount(String userId) {
