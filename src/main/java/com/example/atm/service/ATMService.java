@@ -2,29 +2,35 @@ package com.example.atm.service;
 
 import com.example.atm.entity.*;
 import com.example.atm.repository.*;
+import com.example.atm.security.JwtUtil;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
 @Service
 public class ATMService {
 
     private final UserRepository userRepo;
     private final AccountRepository accountRepo;
     private final TransactionRepository txRepo;
-
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
     public ATMService(UserRepository userRepo,
                       AccountRepository accountRepo,
                       TransactionRepository txRepo,
-                      PasswordEncoder passwordEncoder) {
+                      PasswordEncoder passwordEncoder,
+                      JwtUtil jwtUtil) {
+
         this.userRepo = userRepo;
         this.accountRepo = accountRepo;
         this.txRepo = txRepo;
         this.passwordEncoder = passwordEncoder;
+        this.jwtUtil = jwtUtil; // FIXED
     }
 
     // Register User
@@ -39,7 +45,6 @@ public class ATMService {
         User user = new User(userId, name, hashedPin);
 
         String accountNumber = "ACC" + System.currentTimeMillis();
-
         Account account = new Account(accountNumber, 0.0, user);
 
         user.setAccount(account);
@@ -47,118 +52,104 @@ public class ATMService {
         return userRepo.save(user);
     }
 
-    // Login user
-    public User login(String userId, String pin) {
-        return userRepo.findById(userId)
-        		.filter(u -> passwordEncoder.matches(pin, u.getPin()))
+    // Login
+    public String login(String userId, String pin) {
+
+        User user = userRepo.findById(userId)
+                .filter(u -> passwordEncoder.matches(pin, u.getPin()))
                 .orElseThrow(() -> new RuntimeException("Invalid User ID or PIN"));
+        
+
+        return jwtUtil.generateToken(user.getUserId());
     }
 
-    // Common PIN validation for all operations
-    private Account validatePin(String accountNumber, String pin) {
-        Account acc = accountRepo.findById(accountNumber.trim())
-                .orElseThrow(() -> new RuntimeException("Account not found: " + accountNumber));
+    private Account getUserAccount(String userId) {
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        User user = acc.getUser();
+        return user.getAccount();
+    }
 
-        if (!passwordEncoder.matches(pin, user.getPin())) {
-            throw new RuntimeException("Invalid PIN");
+    // Check Balance
+    public double checkBalance(String userId) {
+        return getUserAccount(userId).getBalance();
+    }
+
+    // Deposit
+    @Transactional
+    public String deposit(String userId, double amt) {
+
+        if (amt <= 0) {
+            throw new RuntimeException("Amount must be greater than zero");
         }
 
-        return acc;
-    }
+        Account acc = getUserAccount(userId);
 
-    // Check account balance (PIN required)
-    public double checkBalance(String accountNumber, String pin) {
-        Account acc = validatePin(accountNumber, pin);
-        return acc.getBalance();
-    }
-
-    // Deposit money (PIN required)
-    @Transactional
-    public String deposit(String accountNumber, String pin, double amt) {
-        Account acc = validatePin(accountNumber, pin);
-        if(amt<=0) {throw new RuntimeException("Negative Balance Exception(The Amount must be Greater Than Zero)");}
         acc.setBalance(acc.getBalance() + amt);
         accountRepo.save(acc);
 
-        Transaction t = new Transaction();
-        t.setType("DEPOSIT");
-        t.setAmount(amt);
-        t.setAccount(acc);
-        t.setNote("Deposit money");
-        t.setTimestamp(LocalDateTime.now());
+        Transaction t = new Transaction("DEPOSIT", amt, "Deposit", acc);
         txRepo.save(t);
 
-        return "Deposited " + amt + " successfully.";
+        return "INR "+amt +"Deposit successfully. AVL bal is INR "+acc.getBalance();
     }
-
-    // Withdraw money (PIN required)
+    // Withdraw
     @Transactional
-    public String withdraw(String accountNumber, String pin, double amt) {
-        Account acc = validatePin(accountNumber, pin);
-        if(amt<=0) {throw new RuntimeException("Negative Balance Exception(The Amount must be Greater Than Zero)");}
+    public String withdraw(String userId, double amt) {
+
+        Account acc = getUserAccount(userId);
+
+        if (amt <= 0) {
+            throw new RuntimeException("Amount must be greater than zero");
+        }
 
         if (amt > acc.getBalance()) {
-            return "Insufficient balance.";
+            throw new RuntimeException("Insufficient balance");
         }
 
         acc.setBalance(acc.getBalance() - amt);
         accountRepo.save(acc);
 
-        Transaction t = new Transaction();
-        t.setType("WITHDRAWAL");
-        t.setAmount(amt);
-        t.setAccount(acc);
-        t.setNote("Withdraw money");
-        t.setTimestamp(LocalDateTime.now());
+        Transaction t = new Transaction("WITHDRAWAL", amt, "Withdraw", acc);
         txRepo.save(t);
 
-        return "Withdrawn " + amt + " successfully.";
+        return "INR "+amt+" Withdraw successfully. AVL Bal is INR"+acc.getBalance();
     }
 
-    // Transfer money (PIN required)
+    // Transfer
     @Transactional
-    public String transfer(String fromAcc, String pin, String toAcc, double amt) {
+    public String transfer(String userId, String toAccount, double amt) {
 
-        Account sender = validatePin(fromAcc, pin);
-        
-        Account receiver = accountRepo.findById(toAcc.trim())
-                .orElseThrow(() -> new RuntimeException("Receiver account not found: " + toAcc));
-        if(amt<=0) {throw new RuntimeException("Negative Balance Exception(The Amount must be Greater Than Zero)");}
+        Account sender = getUserAccount(userId);
+
+        Account receiver = accountRepo.findById(toAccount)
+                .orElseThrow(() -> new RuntimeException("Receiver account not found"));
+
+        if (amt <= 0) {
+            throw new RuntimeException("Amount must be greater than zero");
+        }
 
         if (amt > sender.getBalance()) {
-            return "Insufficient funds.";
+            throw new RuntimeException("Insufficient balance");
         }
-        if(fromAcc.equals(toAcc)) {throw new RuntimeException("Can not transfer money to the same account");}
+
         sender.setBalance(sender.getBalance() - amt);
         receiver.setBalance(receiver.getBalance() + amt);
 
         accountRepo.save(sender);
         accountRepo.save(receiver);
 
-        Transaction t1 = new Transaction();
-        t1.setType("TRANSFER_SENT");
-        t1.setAmount(amt);
-        t1.setAccount(sender);
-        t1.setNote("To " + toAcc);
-        t1.setTimestamp(LocalDateTime.now());
-        txRepo.save(t1);
-
-        Transaction t2 = new Transaction();
-        t2.setType("TRANSFER_RECEIVED");
-        t2.setAmount(amt);
-        t2.setAccount(receiver);
-        t2.setNote("From " + fromAcc);
-        t2.setTimestamp(LocalDateTime.now());
-        txRepo.save(t2);
-
-        return "Transferred " + amt + " from " + fromAcc + " to " + toAcc + " successfully.";
+        return "INR "+amt+" is Transfered successfully.And AVL Bal is "+sender.getBalance();
     }
+    public List<Transaction> getHistory(String userId) {
 
-    // Transaction history (PIN required)
-    public List<Transaction> getHistory(String accountNumber, String pin) {
-        validatePin(accountNumber, pin);
-        return txRepo.findByAccount_AccountNumberOrderByTimestampDesc(accountNumber.trim());
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Account account = user.getAccount();
+
+        return txRepo.findByAccount_AccountNumberOrderByTimestampDesc(
+                account.getAccountNumber()
+        );
     }
 }

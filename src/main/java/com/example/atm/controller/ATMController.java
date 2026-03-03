@@ -3,9 +3,11 @@ package com.example.atm.controller;
 import com.example.atm.entity.*;
 import com.example.atm.service.ATMService;
 import com.example.atm.dto.*;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/atm")
@@ -17,7 +19,7 @@ public class ATMController {
         this.atmService = atmService;
     }
 
-    // Register user
+    // Register (Public)
     @PostMapping("/register")
     public User register(@RequestBody RegisterRequest request) {
         return atmService.registerUser(
@@ -27,61 +29,105 @@ public class ATMController {
         );
     }
 
-    // Login
+    // Login (Public) -> returns JWT token
     @PostMapping("/login")
-    public User login(@RequestBody LoginRequest request) {
-        return atmService.login(
+    public Map<String, String> login(@RequestBody LoginRequest request) {
+        String token = atmService.login(
                 request.getUserId(),
                 request.getPin()
+                
         );
-    }
 
-    // Check Balance
-    @PostMapping("/balance")
-    public double balance(@RequestBody BalanceRequest request) {
-        return atmService.checkBalance(
-                request.getAccountNumber(),
-                request.getPin()
-        );
+        return Map.of("token", token);
+    }
+    
+
+    // Check Balance (JWT Required)
+    @GetMapping("/balance")
+    public double balance(HttpServletRequest request) {
+
+        String userId = (String) request.getAttribute("userId");
+
+        if (userId == null) {
+            throw new RuntimeException("Unauthorized");
+        }
+
+        return atmService.checkBalance(userId);
     }
 
     // Deposit
     @PostMapping("/deposit")
-    public String deposit(@RequestBody DepositRequest request) {
+    public String deposit(HttpServletRequest request,
+                          @RequestBody DepositRequest req) {
+
+        String userId = (String) request.getAttribute("userId");
+
+        if (userId == null) {
+            throw new RuntimeException("Unauthorized");
+        }
+
+        if (req.getAmount() <= 0) {
+            throw new RuntimeException("Invalid amount");
+        }
+
         return atmService.deposit(
-                request.getAccountNumber(),
-                request.getPin(),
-                request.getAmount()
+                userId,
+                req.getAmount()
         );
     }
 
     // Withdraw
     @PostMapping("/withdraw")
-    public String withdraw(@RequestBody WithdrawRequest request) {
+    public String withdraw(HttpServletRequest request,
+                           @RequestBody WithdrawRequest req) {
+
+        String userId = (String) request.getAttribute("userId");
+
+        if (userId == null) {
+            throw new RuntimeException("Unauthorized");
+        }
+
+        if (req.getAmount() <= 0) {
+            throw new RuntimeException("Invalid amount");
+        }
+
         return atmService.withdraw(
-                request.getAccountNumber(),
-                request.getPin(),
-                request.getAmount()
+                userId,
+                req.getAmount()
         );
     }
 
     // Transfer
     @PostMapping("/transfer")
-    public String transfer(@RequestBody TransferRequest request) {
+    public String transfer(HttpServletRequest request,
+                           @RequestBody TransferRequest req) {
+
+        String userId = (String) request.getAttribute("userId");
+
+        if (userId == null) {
+            throw new RuntimeException("Unauthorized");
+        }
+
+        if (req.getAmount() <= 0) {
+            throw new RuntimeException("Invalid amount");
+        }
+
         return atmService.transfer(
-                request.getFromAccount(),
-                request.getPin(),
-                request.getToAccount(),
-                request.getAmount()
+                userId,
+                req.getToAccount(),
+                req.getAmount()
         );
     }
 
-    // Transaction history
-    @PostMapping("/transactions")
-    public List<Transaction> transactions(@RequestBody BalanceRequest request) {
-        return atmService.getHistory(
-                request.getAccountNumber(),
-                request.getPin()
-        );
+    @GetMapping("/transactions")
+    public List<Transaction> transactions(HttpServletRequest request) {
+
+        String userId = (String) request.getAttribute("userId");
+
+        if (userId == null) {
+            throw new RuntimeException("Unauthorized");
+        }
+
+        return atmService.getHistory(userId);
     }
 }
