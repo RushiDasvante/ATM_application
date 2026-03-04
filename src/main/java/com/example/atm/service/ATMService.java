@@ -54,18 +54,67 @@ public class ATMService {
     }
 
     // Login
+//    public LoginResponse login(String userId, String pin) {
+//
+//        User user = userRepo.findById(userId)
+//                .filter(u -> passwordEncoder.matches(pin, u.getPin()))
+//                .orElseThrow(() -> new RuntimeException("Invalid User ID or PIN"));
+//
+//        String token = jwtUtil.generateToken(user.getUserId());
+//
+//        Account account = user.getAccount();
+//
+//        return new LoginResponse(
+//                token,
+//                user.getUserId(),
+//                user.getName(),
+//                account.getAccountNumber(),
+//                account.getBalance()
+//        );
+//    }
     public LoginResponse login(String userId, String pin) {
 
         User user = userRepo.findById(userId)
                 .filter(u -> passwordEncoder.matches(pin, u.getPin()))
                 .orElseThrow(() -> new RuntimeException("Invalid User ID or PIN"));
 
-        String token = jwtUtil.generateToken(user.getUserId());
+        // Generate Access Token (short expiry)
+        String accessToken = jwtUtil.generateAccessToken(user.getUserId());
+
+        // Generate Refresh Token (long expiry)
+        String refreshToken = jwtUtil.generateRefreshToken(user.getUserId());
 
         Account account = user.getAccount();
 
         return new LoginResponse(
-                token,
+                accessToken,
+                refreshToken,
+                "Bearer",
+                user.getUserId(),
+                user.getName(),
+                account.getAccountNumber(),
+                account.getBalance()
+        );
+    }
+    public LoginResponse refreshToken(String refreshToken) {
+
+        if (!jwtUtil.validateToken(refreshToken)) {
+            throw new RuntimeException("Invalid Refresh Token");
+        }
+
+        String userId = jwtUtil.extractUserId(refreshToken);
+
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        String newAccessToken = jwtUtil.generateAccessToken(userId);
+
+        Account account = user.getAccount();
+
+        return new LoginResponse(
+                newAccessToken,
+                refreshToken,
+                "Bearer",
                 user.getUserId(),
                 user.getName(),
                 account.getAccountNumber(),
@@ -101,7 +150,7 @@ public class ATMService {
         Transaction t = new Transaction("DEPOSIT", amt, "Deposit", acc);
         txRepo.save(t);
 
-        return "INR "+amt +"Deposit successfully. AVL bal is INR "+acc.getBalance();
+        return "INR "+amt +" Deposit successfully. AVL bal is INR "+acc.getBalance();
     }
     // Withdraw
     @Transactional
@@ -123,7 +172,7 @@ public class ATMService {
         Transaction t = new Transaction("WITHDRAWAL", amt, "Withdraw", acc);
         txRepo.save(t);
 
-        return "INR "+amt+" Withdraw successfully. AVL Bal is INR"+acc.getBalance();
+        return "INR "+amt+" Withdraw successfully. AVL Bal is INR " +acc.getBalance();
     }
 
     // Transfer
@@ -143,13 +192,36 @@ public class ATMService {
             throw new RuntimeException("Insufficient balance");
         }
 
+        if (sender.getAccountNumber().equals(toAccount)) {
+            throw new RuntimeException("Cannot transfer to same account");
+        }
+
+        // Update balances
         sender.setBalance(sender.getBalance() - amt);
         receiver.setBalance(receiver.getBalance() + amt);
 
         accountRepo.save(sender);
         accountRepo.save(receiver);
 
-        return "INR "+amt+" is Transfered successfully.And AVL Bal is "+sender.getBalance();
+        // Save transaction for sender
+        Transaction t1 = new Transaction();
+        t1.setType("TRANSFER_SENT");
+        t1.setAmount(amt);
+        t1.setAccount(sender);
+        t1.setNote("To " + receiver.getAccountNumber());
+        t1.setTimestamp(LocalDateTime.now());
+        txRepo.save(t1);
+
+        // Save transaction for receiver
+        Transaction t2 = new Transaction();
+        t2.setType("TRANSFER_RECEIVED");
+        t2.setAmount(amt);
+        t2.setAccount(receiver);
+        t2.setNote("From " + sender.getAccountNumber());
+        t2.setTimestamp(LocalDateTime.now());
+        txRepo.save(t2);
+
+        return "INR " + amt + " transferred successfully. Available Balance: " + sender.getBalance();
     }
     public List<Transaction> getHistory(String userId) {
 

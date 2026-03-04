@@ -37,7 +37,11 @@ public class ATMController {
                 request.getPin()
         );
     }
-    
+    // Refresh Token API
+    @PostMapping("/refresh")
+    public LoginResponse refreshToken(@RequestBody RefreshTokenRequest request) {
+        return atmService.refreshToken(request.getRefreshToken());
+    }
 
     // Check Balance (JWT Required)
     @GetMapping("/balance")

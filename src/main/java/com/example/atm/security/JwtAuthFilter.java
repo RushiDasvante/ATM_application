@@ -23,6 +23,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     }
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getServletPath();
+        return path.equals("/atm/login") ||
+               path.equals("/atm/register") ||
+               path.equals("/atm/refresh");
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain)
@@ -35,16 +43,23 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             String token = authHeader.substring(7);
 
             try {
-                // Validate token
+
                 if (!jwtUtil.validateToken(token)) {
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     return;
                 }
 
-                // Extract userId
+                // NEW: Check token type
+                String tokenType = jwtUtil.extractTokenType(token);
+
+                if (!"access".equals(tokenType)) {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.getWriter().write("Use Access Token only");
+                    return;
+                }
+
                 String userId = jwtUtil.extractUserId(token);
 
-                // Create authentication object
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
                                 userId,
@@ -52,10 +67,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                 Collections.emptyList()
                         );
 
-                // Set authentication in Spring Security
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-
-                // Store userId for controller
                 request.setAttribute("userId", userId);
 
             } catch (Exception e) {
