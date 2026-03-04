@@ -24,6 +24,7 @@ Backend system architecture
 ✔ Exception Handling with Global Handler
 
 🏗️ System Architecture
+
              Client (Postman / Frontend)
                        │
                        ▼
@@ -40,6 +41,7 @@ Backend system architecture
                        ▼
                     MySQL DB
 Security Flow
+
 Login Request
      │
      ▼
@@ -114,6 +116,7 @@ Password Encryption
 Secure Token Validation
 
 📂 Project Structure
+
 atm-system
 │
 ├── controller
