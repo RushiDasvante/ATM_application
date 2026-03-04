@@ -13,8 +13,7 @@ public class JwtUtil {
     private final String SECRET_KEY =
             "mySecretKeyForSpringbootATMApplication14725836900012332165498746444844444";
 
-    private final long ACCESS_TOKEN_EXPIRATION = 1000 * 60 * 1; // 1 hour
-    private final long REFRESH_TOKEN_EXPIRATION = 1000L * 60 * 60 * 24 * 7; // 7 days
+    
 
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
