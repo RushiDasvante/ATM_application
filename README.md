@@ -42,44 +42,33 @@ Backend system architecture
                     MySQL DB
 Security Flow
 
-Login Request
-     │
-     ▼
-Generate Access Token + Refresh Token
-     │
-     ▼
-Access Protected APIs
-     │
-     ▼
-Access Token Expired
-     │
-     ▼
-Use Refresh Token → Generate New Access Token
+          Login Request
+               │
+               ▼
+          Generate Access Token + Refresh Token
+               │
+               ▼
+          Access Protected APIs
+               │
+               ▼
+          Access Token Expired
+               │
+               ▼
+          Use Refresh Token → Generate New Access Token
 ⚙️ Tech Stack
-Backend
-
+# Backend:
 Java 21
-
 Spring Boot
-
 Spring Security
-
 JWT Authentication
-
 Hibernate / JPA
-
 Maven
-
 Database
-
 MySQL
 
-Tools
-
+# Tools:
 Postman
-
 Git & GitHub
-
 IntelliJ / Eclipse
 
 ✨ Features
@@ -117,86 +106,86 @@ Secure Token Validation
 
 📂 Project Structure
 
-atm-system
-│
-├── controller
-│   ├── AuthController
-│   └── TransactionController
-│
-├── service
-│   ├── ATMService
-│
-├── repository
-│   ├── UserRepository
-│   ├── AccountRepository
-│   └── TransactionRepository
-│
-├── security
-│   ├── JwtUtil
-│   ├── JwtAuthFilter
-│   └── SecurityConfig
-│
-├── dto
-│   ├── LoginRequest
-│   ├── LoginResponse
-│   └── RefreshTokenRequest
-│
-└── exception
-    └── GlobalExceptionHandler
+      atm-system
+      │
+      ├── controller
+      │   ├── AuthController
+      │   └── TransactionController
+      │
+      ├── service
+      │   ├── ATMService
+      │
+      ├── repository
+      │   ├── UserRepository
+      │   ├── AccountRepository
+      │   └── TransactionRepository
+      │
+      ├── security
+      │   ├── JwtUtil
+      │   ├── JwtAuthFilter
+      │   └── SecurityConfig
+      │
+      ├── dto
+      │   ├── LoginRequest
+      │   ├── LoginResponse
+      │   └── RefreshTokenRequest
+      │
+      └── exception
+          └── GlobalExceptionHandler
 🔐 Authentication Example
 Login API
 
 POST /atm/login
 
-Response:
-
-{
-  "accessToken": "jwt-access-token",
-  "refreshToken": "jwt-refresh-token",
-  "tokenType": "Bearer",
-  "userId": "USR001",
-  "name": "Rushi",
-  "accountNumber": "ACC12345",
-  "balance": 5000
-}
+    Response:
+    
+    {
+      "accessToken": "jwt-access-token",
+      "refreshToken": "jwt-refresh-token",
+      "tokenType": "Bearer",
+      "userId": "USR001",
+      "name": "Rushi",
+      "accountNumber": "ACC12345",
+      "balance": 5000
+    }
 📡 API Endpoints
 Authentication APIs
 Method	Endpoint	Description
-POST	/atm/register	Register new user
-POST	/atm/login	Login user
-POST	/atm/refresh	Refresh access token
+  POST	/atm/register	Register new user
+  POST	/atm/login	Login user
+  POST	/atm/refresh	Refresh access token
 Banking APIs
 Method	Endpoint	Description
-GET	/atm/balance	Check balance
-POST	/atm/deposit	Deposit money
-POST	/atm/withdraw	Withdraw money
-POST	/atm/transfer	Transfer money
-GET	/atm/transactions	View transaction history
+  GET	/atm/balance	Check balance
+  POST	/atm/deposit	Deposit money
+  POST	/atm/withdraw	Withdraw money
+  POST	/atm/transfer	Transfer money
+  GET	/atm/transactions	View transaction history
 🗄️ Database Schema
-User Table
-user_id
-name
-pin
-account_id
-Account Table
-account_number
-balance
-Transaction Table
-id
-account_number
-type
-amount
-timestamp
+# User Table
+    user_id
+    name
+    pin
+    account_id
+# Account Table
+    account_number
+    balance
+    Transaction Table
+    id
+    account_number
+    type
+    amount
+    timestamp
 
 Types of Transactions:
 
-Deposit
-
-Withdraw
-
-Transfer Sent
-
-Transfer Received
+    Deposit
+    
+    Withdraw
+    
+    Transfer Sent
+    
+    Transfer Received
 
 🛠️ How to Run the Project
 1. Clone Repository
@@ -207,25 +196,28 @@ IntelliJ IDEA / Eclipse
 
 3. Configure Database
 
-Update application.properties
+Update application.properties:
 
-spring.datasource.url=jdbc:mysql://localhost:3306/atm_db
-spring.datasource.username=root
-spring.datasource.password=yourpassword
+    spring.datasource.url=jdbc:mysql://localhost:3306/atm_db
+    spring.datasource.username=root
+    spring.datasource.password=yourpassword
 4. Run Application
 mvn spring-boot:run
 5. Test Using Postman
-📊 Project Workflow
-User → Login → JWT Generated
-        │
-        ▼
-Access Protected APIs
-        │
-        ▼
-Perform Banking Transactions
-        │
-        ▼
-Data Stored in Database
+   
+# 📊 Project Workflow
+
+    User → Login → JWT Generated
+            │
+            ▼
+    Access Protected APIs
+            │
+            ▼
+    Perform Banking Transactions
+            │
+            ▼
+    Data Stored in Database
+    
 🎯 Key Learning Outcomes
 
 Implemented JWT authentication with refresh tokens
