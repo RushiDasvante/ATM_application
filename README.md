@@ -55,7 +55,7 @@ Security Flow
                │
                ▼
           Use Refresh Token → Generate New Access Token
-⚙️ Tech Stack
+# ⚙️ Tech Stack
 # Backend:
 Java 21
 Spring Boot
@@ -71,7 +71,7 @@ Postman
 Git & GitHub
 IntelliJ / Eclipse
 
-✨ Features
+# ✨ Features
 Authentication
 
 User Registration
@@ -104,7 +104,7 @@ Password Encryption
 
 Secure Token Validation
 
-📂 Project Structure
+# 📂 Project Structure
 
       atm-system
       │
@@ -132,7 +132,7 @@ Secure Token Validation
       │
       └── exception
           └── GlobalExceptionHandler
-🔐 Authentication Example
+# 🔐 Authentication Example
 Login API
 
 POST /atm/login
@@ -148,7 +148,7 @@ POST /atm/login
       "accountNumber": "ACC12345",
       "balance": 5000
     }
-📡 API Endpoints
+# 📡 API Endpoints
 Authentication APIs
 Method	Endpoint	Description
   POST	/atm/register	Register new user
@@ -161,7 +161,7 @@ Method	Endpoint	Description
   POST	/atm/withdraw	Withdraw money
   POST	/atm/transfer	Transfer money
   GET	/atm/transactions	View transaction history
-🗄️ Database Schema
+# 🗄️ Database Schema
 # User Table
     user_id
     name
@@ -177,7 +177,7 @@ Method	Endpoint	Description
     amount
     timestamp
 
-Types of Transactions:
+# Types of Transactions:
 
     Deposit
     
@@ -218,7 +218,7 @@ mvn spring-boot:run
             ▼
     Data Stored in Database
     
-🎯 Key Learning Outcomes
+# 🎯 Key Learning Outcomes
 
 Implemented JWT authentication with refresh tokens
 
@@ -232,7 +232,7 @@ Integrated MySQL using Hibernate/JPA
 
 Applied transaction management with @Transactional
 
-🚀 Future Enhancements
+# 🚀 Future Enhancements
 
 Role-Based Access Control (RBAC)
 
@@ -246,7 +246,7 @@ API Rate Limiting
 
 Frontend Integration (React)
 
-👨‍💻 Author
+# 👨‍💻 Author
 
 Rushi Dasvante
 Java Backend Developer
