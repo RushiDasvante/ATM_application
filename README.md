@@ -1,76 +1,263 @@
-# ATM_application
+## 🚀 Secure ATM Banking Backend System
 
-🏧 ATM Management System (Spring Boot + MySQL)
+A secure ATM banking backend system built using Spring Boot and JWT authentication that simulates real-world banking operations such as deposits, withdrawals, transfers, and transaction tracking.
 
-The ATM Management System is a Spring Boot application that simulates real-world ATM functionalities such as user login, balance inquiry, deposits, withdrawals, money transfers, and transaction history tracking.
-It uses Spring Boot, Spring Data JPA, and MySQL for backend logic and persistent data storage.
+This project demonstrates:
 
-🔹 Key Features
+Secure authentication
 
-User Authentication – Secure login using userId and PIN.
+Transaction management
 
-Check Balance – Instantly view your current account balance.
+RESTful API design
 
-Deposit Money – Deposit funds using simple REST endpoints.
+Backend system architecture
 
-Withdraw Money – Withdraw cash (with balance validation).
+📌 Project Highlights
 
-Transfer Funds – Transfer money between two accounts securely.
+✔ JWT Authentication (Access Token + Refresh Token)
+✔ Secure REST APIs using Spring Security
+✔ Fund Transfer with Transaction Safety
+✔ Deposit & Withdraw Operations
+✔ Transaction History Tracking
+✔ MySQL Database Integration
+✔ Clean Layered Architecture
+✔ Exception Handling with Global Handler
 
-Transaction History – View detailed transaction logs for each account, including type, amount, timestamp, and notes.
+🏗️ System Architecture
+             Client (Postman / Frontend)
+                       │
+                       ▼
+                REST Controller
+                       │
+                       ▼
+                  Service Layer
+             (Business Logic)
+                       │
+                       ▼
+                Repository Layer
+               (JPA / Hibernate)
+                       │
+                       ▼
+                    MySQL DB
+Security Flow
+Login Request
+     │
+     ▼
+Generate Access Token + Refresh Token
+     │
+     ▼
+Access Protected APIs
+     │
+     ▼
+Access Token Expired
+     │
+     ▼
+Use Refresh Token → Generate New Access Token
+⚙️ Tech Stack
+Backend
 
-MySQL Integration – All user, account, and transaction data are stored in a relational MySQL database.
+Java 21
 
-🧱 Tech Stack
+Spring Boot
 
-Backend: Spring Boot (Java 21), Spring Data JPA
+Spring Security
 
-Database: MySQL
+JWT Authentication
 
-Build Tool: Maven
+Hibernate / JPA
 
-API Testing: Postman
+Maven
 
-🧩 Entity Overview
+Database
 
-User → Contains user credentials and account mapping.
+MySQL
 
-Account → Stores balance and linked user info.
+Tools
 
-Transaction → Records every deposit, withdrawal, and transfer operation.
+Postman
 
-🔗 Sample Endpoints
-Action	Method	URL	Params
+Git & GitHub
 
-Login	GET	/atm/login?userId=U001&pin=1234	userId, pin
+IntelliJ / Eclipse
 
-Check Balance	GET	/atm/balance/ACC001	accountNumber
+✨ Features
+Authentication
 
-Deposit	POST	/atm/deposit?accountNumber=ACC001&amount=2000	accountNumber, amount
+User Registration
 
-Withdraw	POST	/atm/withdraw?accountNumber=ACC001&amount=1000	accountNumber, amount
+Secure Login
 
-Transfer	POST	/atm/transfer?from=ACC001&to=ACC002&amount=500	from, to, amount
+Access Token & Refresh Token
 
-Transaction History	GET	/atm/transactions/ACC001	accountNumber
+Token Validation
 
-🧠 How It Works
+Banking Operations
 
-The user logs in using userId and PIN.
+Deposit Money
 
-Each operation (deposit, withdraw, transfer) automatically creates a new Transaction record.
+Withdraw Money
 
-All actions are stored persistently in the MySQL database.
+Transfer Funds
 
-Users can fetch transaction history at any time using their account number.
+Check Balance
 
+View Transaction History
+
+Security
+
+Custom JWT Filter
+
+Protected APIs
+
+Password Encryption
+
+Secure Token Validation
+
+📂 Project Structure
+atm-system
+│
+├── controller
+│   ├── AuthController
+│   └── TransactionController
+│
+├── service
+│   ├── ATMService
+│
+├── repository
+│   ├── UserRepository
+│   ├── AccountRepository
+│   └── TransactionRepository
+│
+├── security
+│   ├── JwtUtil
+│   ├── JwtAuthFilter
+│   └── SecurityConfig
+│
+├── dto
+│   ├── LoginRequest
+│   ├── LoginResponse
+│   └── RefreshTokenRequest
+│
+└── exception
+    └── GlobalExceptionHandler
+🔐 Authentication Example
+Login API
+
+POST /atm/login
+
+Response:
+
+{
+  "accessToken": "jwt-access-token",
+  "refreshToken": "jwt-refresh-token",
+  "tokenType": "Bearer",
+  "userId": "USR001",
+  "name": "Rushi",
+  "accountNumber": "ACC12345",
+  "balance": 5000
+}
+📡 API Endpoints
+Authentication APIs
+Method	Endpoint	Description
+POST	/atm/register	Register new user
+POST	/atm/login	Login user
+POST	/atm/refresh	Refresh access token
+Banking APIs
+Method	Endpoint	Description
+GET	/atm/balance	Check balance
+POST	/atm/deposit	Deposit money
+POST	/atm/withdraw	Withdraw money
+POST	/atm/transfer	Transfer money
+GET	/atm/transactions	View transaction history
+🗄️ Database Schema
+User Table
+user_id
+name
+pin
+account_id
+Account Table
+account_number
+balance
+Transaction Table
+id
+account_number
+type
+amount
+timestamp
+
+Types of Transactions:
+
+Deposit
+
+Withdraw
+
+Transfer Sent
+
+Transfer Received
+
+🛠️ How to Run the Project
+1. Clone Repository
+git clone https://github.com/RushiDasvante/ATM_application.git
+2. Open Project in IDE
+
+IntelliJ IDEA / Eclipse
+
+3. Configure Database
+
+Update application.properties
+
+spring.datasource.url=jdbc:mysql://localhost:3306/atm_db
+spring.datasource.username=root
+spring.datasource.password=yourpassword
+4. Run Application
+mvn spring-boot:run
+5. Test Using Postman
+📊 Project Workflow
+User → Login → JWT Generated
+        │
+        ▼
+Access Protected APIs
+        │
+        ▼
+Perform Banking Transactions
+        │
+        ▼
+Data Stored in Database
+🎯 Key Learning Outcomes
+
+Implemented JWT authentication with refresh tokens
+
+Built secure REST APIs using Spring Security
+
+Designed scalable backend architecture
+
+Managed financial transactions safely
+
+Integrated MySQL using Hibernate/JPA
+
+Applied transaction management with @Transactional
 
 🚀 Future Enhancements
 
-JWT-based secure login system
+Role-Based Access Control (RBAC)
 
-Frontend UI using React or Angular
+Admin Dashboard
 
-Admin dashboard to manage users and accounts
+Microservices Architecture
 
-Email or SMS notifications for transactions
+Docker Deployment
+
+API Rate Limiting
+
+Frontend Integration (React)
+
+👨‍💻 Author
+
+Rushi Dasvante
+Java Backend Developer
+
+GitHub
+https://github.com/RushiDasvante
+
+LinkedIn
+https://www.linkedin.com/in/rushidasvante
