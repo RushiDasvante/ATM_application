@@ -166,16 +166,19 @@ Method	Endpoint	Description
     user_id
     name
     pin
-    account_id
+    
 # Account Table
     account_number
     balance
-    Transaction Table
+    user_id
+    
+# Transactions
     id
-    account_number
-    type
     amount
+    note
     timestamp
+    type
+    account_number
 
 # Types of Transactions:
 
